@@ -6,24 +6,39 @@ import os
 import re
 
 
+def extract_title(file_path):
+    """
+    Извлекает первый заголовок H1 (# Заголовок) из markdown-файла.
+    :param file_path: Путь к markdown-файлу.
+    :return: Текст заголовка или None, если заголовок не найден.
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('# '):
+                    return line[2:].strip()
+    except (IOError, UnicodeDecodeError):
+        pass
+    return None
+
+
 def create_simple_summary(directory="."):
     """
-    Creates a SUMMARY.md file in the specified directory by recursively scanning for markdown files
-    and organizing them into a hierarchical table of contents.
+    Creates a SUMMARY.md file with a flat list of all markdown files.
+    Files from subdirectories are listed at root level with their paths.
     :param directory: The root dir to scan for MD files and subdirs (defaults to current directory).
     :return: None
     """
     summary = ["# Summary\n\n"]
 
-    def process_dir(current_dir, level=0):
+    def collect_files(current_dir):
         """
-        Recursively processes a directory to build a markdown summary tree of markdown files
-        and subdirectories, skipping hidden files and SUMMARY.md.
+        Recursively collects all markdown files, skipping hidden files, SUMMARY.md and README.md.
         :param current_dir: The current directory path to process.
-        :param level: The current indentation level for the summary tree (used for recursive calls).
-        :return: None (modifies the global 'summary' list in-place).
+        :return: List of tuples (relative_path, title)
         """
-        items = []
+        files = []
 
         for item in sorted(os.listdir(current_dir)):
             if item.startswith('.') or item in ('SUMMARY.md', 'README.md'):
@@ -33,33 +48,35 @@ def create_simple_summary(directory="."):
             rel_path = os.path.relpath(full_path, directory)
 
             if os.path.isdir(full_path):
-                md_files = [fmd for fmd in os.listdir(full_path)
-                            if fmd.endswith('.md') and fmd not in ('SUMMARY.md', 'README.md')]
+                # Collect files from subdirectory
+                for fmd in sorted(os.listdir(full_path)):
+                    if fmd.endswith('.md') and fmd not in ('SUMMARY.md', 'README.md'):
+                        md_file_path = os.path.join(full_path, fmd)
+                        title = extract_title(md_file_path)
 
-                if md_files:
-                    folder_name = re.sub(r'^\d+\.\s*', '', item)
-                    items.append((rel_path, folder_name, True, sorted(md_files)))
-
+                        if title:
+                            files.append((rel_path.replace('\\', '/') + '/' + fmd, title))
+                        else:
+                            clean_name = re.sub(r'^\d+\.\s*', '', fmd[:-3])
+                            files.append((rel_path.replace('\\', '/') + '/' + fmd, clean_name))
             elif item.endswith('.md'):
-                file_name = re.sub(r'^\d+\.\s*', '', item[:-3])  # Убираем .md и нумерацию
-                items.append((rel_path, file_name, False, None))
+                title = extract_title(full_path)
 
-        items.sort(key=lambda x: x[0])
-
-        for path, name, is_dir, md_files in items:
-            indent = "  " * level
-
-            if is_dir:
-                if md_files:
-                    first_file = os.path.join(path, md_files[0])
-                    summary.append(f"{indent}- [{name}]({first_file})\n")
-                    process_dir(os.path.join(directory, path), level + 1)
+                if title:
+                    files.append((rel_path.replace('\\', '/'), title))
                 else:
-                    summary.append(f"{indent}- {name}\n")
-            else:
-                summary.append(f"{indent}- [{name}]({path})\n")
+                    file_name = re.sub(r'^\d+\.\s*', '', item[:-3])
+                    files.append((rel_path.replace('\\', '/'), file_name))
 
-    process_dir(directory)
+        return files
+
+    # Collect all files from root and subdirectories
+    all_files = collect_files(directory)
+    all_files.sort(key=lambda x: x[0])
+
+    # Write flat list
+    for path, title in all_files:
+        summary.append(f"- [{title}]({path})\n")
 
     with open(os.path.join(directory, 'SUMMARY.md'), 'w', encoding='utf-8') as f:
         f.write(''.join(summary))
