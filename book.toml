@@ -1,0 +1,8 @@
+[book]
+title = "Tech Quiz: Гид по техническому интервью"
+authors = ["Коллективный разум"]
+language = "ru"
+src = "."
+
+[output.epub]
+curly-quotes = true
