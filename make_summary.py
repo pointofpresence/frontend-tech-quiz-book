@@ -1,3 +1,7 @@
+"""
+Generating SUMMARY.md file with a list of project markdown files.
+"""
+
 import os
 import re
 
@@ -22,15 +26,15 @@ def create_simple_summary(directory="."):
         items = []
 
         for item in sorted(os.listdir(current_dir)):
-            if item.startswith('.') or item == 'SUMMARY.md':
+            if item.startswith('.') or item in ('SUMMARY.md', 'README.md'):
                 continue
 
             full_path = os.path.join(current_dir, item)
             rel_path = os.path.relpath(full_path, directory)
 
             if os.path.isdir(full_path):
-                md_files = [f for f in os.listdir(full_path)
-                            if f.endswith('.md') and f != 'SUMMARY.md']
+                md_files = [fmd for fmd in os.listdir(full_path)
+                            if fmd.endswith('.md') and fmd not in ('SUMMARY.md', 'README.md')]
 
                 if md_files:
                     folder_name = re.sub(r'^\d+\.\s*', '', item)
