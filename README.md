@@ -2,7 +2,7 @@
 
 [Tech Quiz. Гид по техническому интервью](SUMMARY.md)
 
-## Download
+## Download book (EPUB)
 
 https://github.com/pointofpresence/tech-quiz-book/releases
 
