@@ -8,16 +8,18 @@ import re
 
 def extract_title(file_path):
     """
-    Извлекает первый заголовок H1 (# Заголовок) из markdown-файла.
-    :param file_path: Путь к markdown-файлу.
-    :return: Текст заголовка или None, если заголовок не найден.
+    Extracts the first H1 heading (# Heading) from a markdown file.
+    :param file_path: Path to the markdown file.
+    :return: The heading text or None if the heading is not found.
     """
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
+
                 if line.startswith('# '):
                     return line[2:].strip()
+
     except (IOError, UnicodeDecodeError):
         pass
     return None
@@ -52,18 +54,19 @@ def create_simple_summary(directory="."):
                 for fmd in sorted(os.listdir(full_path)):
                     if fmd.endswith('.md') and fmd not in ('SUMMARY.md', 'README.md'):
                         md_file_path = os.path.join(full_path, fmd)
-                        title = extract_title(md_file_path)
+                        extracted_title = extract_title(md_file_path)
 
-                        if title:
-                            files.append((rel_path.replace('\\', '/') + '/' + fmd, title))
+                        if extracted_title:
+                            files.append((rel_path.replace('\\', '/') + '/' + fmd, extracted_title))
                         else:
                             clean_name = re.sub(r'^\d+\.\s*', '', fmd[:-3])
                             files.append((rel_path.replace('\\', '/') + '/' + fmd, clean_name))
-            elif item.endswith('.md'):
-                title = extract_title(full_path)
 
-                if title:
-                    files.append((rel_path.replace('\\', '/'), title))
+            elif item.endswith('.md'):
+                extracted_title = extract_title(full_path)
+
+                if extracted_title:
+                    files.append((rel_path.replace('\\', '/'), extracted_title))
                 else:
                     file_name = re.sub(r'^\d+\.\s*', '', item[:-3])
                     files.append((rel_path.replace('\\', '/'), file_name))
@@ -86,5 +89,4 @@ def create_simple_summary(directory="."):
 
 
 if __name__ == "__main__":
-    target_dir = input("Enter path (Enter for current): ").strip() or "."
-    create_simple_summary(target_dir)
+    create_simple_summary(".")
