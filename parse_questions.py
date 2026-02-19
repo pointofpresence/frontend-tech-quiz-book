@@ -62,6 +62,10 @@ def parse_questions(json_path, output_dir="."):
     with open(json_path, 'r', encoding='utf-8') as f:
         questions = json.load(f)
 
+    with open('tags.json', 'r', encoding='utf-8') as f:
+        all_tags = json.load(f)
+        original_tags, display_tags = all_tags
+
     categories = {}
 
     for question in questions:
@@ -87,7 +91,23 @@ def parse_questions(json_path, output_dir="."):
             filepath = os.path.join(category_dir, filename)
             title = question.get('title', '-')
             answer = "### Краткий ответ\n\n" + promote_markdown_headings(question.get('answer', ''))
-            content = f"# {title}\n\nКатегория: {category}\n\n{answer}\n" if category else f"# {title}\n\n{answer}\n"
+            tags = [category] + question.get('tags', [])
+            display_categories = []
+
+            for tag in tags:
+                tag_index = original_tags.index(tag)
+                display_category = display_tags[tag_index]
+                display_categories.append(display_category)
+
+            content = f"# {title}\n\n"
+
+            if len(display_categories) > 0:
+                content += "### Категории\n\n"
+                display_categories = list(set(display_categories))
+                content += ", ".join(display_categories)
+                content += "\n\n"
+
+            content += f"{answer}\n"
 
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
