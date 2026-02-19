@@ -28,6 +28,30 @@ def safe_translit(name: str) -> str:
     return new_base + ext
 
 
+def promote_markdown_headings(text: str) -> str:
+    """
+    Promotes all Markdown headings by one level.
+    Example: '# Title' becomes '## Title', '## Subtitle' becomes '### Subtitle', etc.
+    :param text: Input Markdown text.
+    :return: Markdown text with all heading levels increased by 1.
+    """
+
+    def _replace_heading(match):
+        hashes = match.group(1)
+        content = match.group(2)
+
+        # Limit to reasonable depth (e.g., don't go beyond ######)
+        if len(hashes) >= 6:
+            return match.group(0)  # Keep as-is if already at max level
+
+        return '##' + hashes + ' ' + content
+
+    # Match lines that start with 1-6 '#' followed by a space and content
+    # ^ at start of line, (#+) captures the hashes, \s+ ensures at least one whitespace,
+    # (.*) captures the rest of the heading text
+    return re.sub(r'^(#{1,6})\s+(.*)$', _replace_heading, text, flags=re.MULTILINE)
+
+
 def parse_questions(json_path, output_dir="."):
     """
     Parses a JSON file with questions and creates an MD-file structure by categories.
@@ -62,8 +86,8 @@ def parse_questions(json_path, output_dir="."):
             filename = f"article-{idx + 1}.md"
             filepath = os.path.join(category_dir, filename)
             title = question.get('title', '-')
-            answer = question.get('answer', '')
-            content = f"# {title}\n\n{answer}\n"
+            answer = "### Краткий ответ\n\n" + promote_markdown_headings(question.get('answer', ''))
+            content = f"# {title}\n\nКатегория: {category}\n\n{answer}\n" if category else f"# {title}\n\n{answer}\n"
 
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
