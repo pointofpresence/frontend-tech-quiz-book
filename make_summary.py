@@ -4,6 +4,29 @@ Generating SUMMARY.md file with a list of project markdown files.
 
 import os
 import re
+import html
+
+
+def sanitize_title(title: str) -> str:
+    """
+    Removes or replaces problematic characters that may break parsers while preserving readability.
+    :param title: The input string to sanitize.
+    :return: A sanitized string with dangerous characters replaced or removed.
+    """
+    # Remove or replace characters that could break the parser
+    # Particularly dangerous: [, ], (, ), `, <, >, ", ', \, {, }, |, ^, ~, #
+    # But we don't want to remove everything-preserve readability
+
+    # Escape HTML entities if present
+    title = html.unescape(title)
+
+    # We replace angle bracketsWe replace angle brackets
+    title = title.replace('<', '&lt;').replace('>', '&gt;')
+
+    # Removing potentially dangerous symbols for links
+    title = title.replace('[', '(').replace(']', ')')
+
+    return title.strip()
 
 
 def extract_title(file_path):
@@ -22,6 +45,7 @@ def extract_title(file_path):
 
     except (IOError, UnicodeDecodeError):
         pass
+
     return None
 
 
@@ -57,10 +81,12 @@ def create_simple_summary(directory="."):
                         extracted_title = extract_title(md_file_path)
 
                         if extracted_title:
-                            files.append((rel_path.replace('\\', '/') + '/' + fmd, extracted_title))
+                            safe_title = sanitize_title(extracted_title)
+                            files.append((rel_path.replace('\\', '/') + '/' + fmd, safe_title))
                         else:
                             clean_name = re.sub(r'^\d+\.\s*', '', fmd[:-3])
-                            files.append((rel_path.replace('\\', '/') + '/' + fmd, clean_name))
+                            safe_title = sanitize_title(clean_name)
+                            files.append((rel_path.replace('\\', '/') + '/' + fmd, safe_title))
 
             elif item.endswith('.md'):
                 extracted_title = extract_title(full_path)
