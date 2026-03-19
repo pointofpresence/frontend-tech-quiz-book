@@ -2,3 +2,4 @@
 /.idea/
 /mdbook-epub-windows-amd64.exe
 /.qodo/
+/filter.py

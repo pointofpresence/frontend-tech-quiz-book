@@ -1,10 +1,10 @@
 # tech-quiz-book
 
-[Tech Quiz. Гид по техническому интервью](SUMMARY.md)
+[Front-end Tech Quiz. Гид по техническому интервью](SUMMARY.md)
 
 ## Download book (EPUB)
 
-https://github.com/pointofpresence/tech-quiz-book/releases
+https://github.com/pointofpresence/frontend-tech-quiz-book/releases
 
 ## Build
 
