@@ -5,6 +5,11 @@ Generating SUMMARY.md file with a list of project markdown files.
 import os
 import re
 import html
+import sys
+
+# Setting UTF-8 for console output (Windows)
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
 
 
 def sanitize_title(title: str) -> str:
