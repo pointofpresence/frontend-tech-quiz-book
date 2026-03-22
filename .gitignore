@@ -5,3 +5,5 @@
 /filter.py
 /ai_detect.py
 /ai_detected.json
+/cat_questions.json
+/update_categories.py
